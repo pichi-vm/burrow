@@ -1,0 +1,38 @@
+[package]
+name = "burrow"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+repository = "https://github.com/pichi-vm/burrow"
+description = "Tiny caching URL downloader for tests: fetch(url) -> a cached path under target/."
+
+[dependencies]
+# Blocking HTTPS via rustls (no system OpenSSL — works on Linux/macOS/Windows).
+ureq = "2"
+# Cross-platform advisory file lock so concurrent fetchers don't race.
+fs2 = "0.4"
+
+[lints.rust]
+unsafe_code = "deny"
+missing_debug_implementations = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+unreachable_pub = "warn"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+must_use_candidate = "allow"
+doc_markdown = "allow"
+type_complexity = "allow"
+similar_names = "allow"
+struct_field_names = "allow"
+needless_continue = "allow"
+cast_possible_truncation = "allow"
+cast_sign_loss = "allow"
+cast_lossless = "allow"
+too_many_lines = "allow"
+missing_panics_doc = "allow"
+needless_pass_by_value = "allow"
+uninlined_format_args = "allow"
