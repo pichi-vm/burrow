@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
 repository = "https://github.com/pichi-vm/burrow"
-description = "Tiny caching URL downloader for tests: fetch(url) -> a cached path under target/."
+description = "Kernel catalog and download cache for pichi-vm test suites."
 
 [dependencies]
 # Blocking HTTPS via rustls (no system OpenSSL — works on Linux/macOS/Windows).
