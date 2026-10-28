@@ -51,8 +51,17 @@ jobs:
   # The caching machinery (fetch + fs2 advisory lock + cache-hit) is the
   # platform-sensitive part, so exercise it on every OS. Catalog freshness runs
   # on a schedule instead (freshness.yml).
+  #
+  # The cheap checks above run in parallel. This matrix starts only after all
+  # of them succeed, so a failed license, deny, commit-message, or lint job
+  # does not spend multi-OS cache minutes.
   cache:
     name: cache (${{ matrix.os }})
+    needs:
+      - license-headers
+      - cargo-deny
+      - commit-messages
+      - lint
     strategy:
       fail-fast: false
       matrix:
