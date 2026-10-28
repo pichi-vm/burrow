@@ -66,31 +66,33 @@ fn url_key(url: &str) -> String {
 pub fn fetch(url: &str) -> io::Result<PathBuf> {
     let dir = cache_dir();
     fs::create_dir_all(&dir)?;
-    let dest = dir.join(url_key(url));
+    let key = url_key(url);
+    let dest = dir.join(&key);
+    let lock_path = dir.join(format!("{key}.lock"));
+    let tmp_path = dir.join(format!("{key}.tmp"));
 
     // Hold an exclusive lock for the whole check-then-download so parallel
     // callers don't both download (the lock auto-releases if a process dies).
-    let lock = File::create(dest.with_extension("lock"))?;
+    let lock = File::create(lock_path)?;
     lock.lock_exclusive()?;
-    let result = fetch_locked(url, &dest);
+    let result = fetch_locked(url, &dest, &tmp_path);
     let _ = FileExt::unlock(&lock);
     result
 }
 
-fn fetch_locked(url: &str, dest: &Path) -> io::Result<PathBuf> {
+fn fetch_locked(url: &str, dest: &Path, tmp: &Path) -> io::Result<PathBuf> {
     if dest.exists() {
         return Ok(dest.to_path_buf());
     }
-    let tmp = dest.with_extension("tmp");
     let resp = ureq::get(url)
         .call()
         .map_err(|e| io::Error::other(format!("GET {url}: {e}")))?;
     let mut reader = resp.into_reader();
-    let mut file = File::create(&tmp)?;
+    let mut file = File::create(tmp)?;
     io::copy(&mut reader, &mut file)?;
     file.sync_all()?;
     drop(file);
-    fs::rename(&tmp, dest)?; // atomic publish
+    fs::rename(tmp, dest)?; // atomic publish
     Ok(dest.to_path_buf())
 }
 
@@ -232,7 +234,7 @@ pub fn config_is_y(text: &str, sym: &str) -> bool {
 /// `config-<ver>-virt`) — the parent directory is listed and the first entry
 /// matching the `prefix*suffix` pattern is fetched.
 #[must_use]
-pub fn fetch_config_text(spec: &str) -> Option<String> {
+fn fetch_config_text(spec: &str) -> Option<String> {
     let url = match spec.split_once('*') {
         None => spec.to_string(),
         Some((pre, suf)) => {
