@@ -16,6 +16,6 @@ jobs:
     name: catalog freshness
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test catalog_is_fresh -- --ignored --nocapture
