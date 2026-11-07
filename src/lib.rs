@@ -15,10 +15,8 @@
 //! artifact. Concurrent callers (threads, or separate test processes) are
 //! serialized per URL with an advisory file lock.
 //!
-//! Cache location (resolved at runtime): `$BURROW_CACHE` if set, else
-//! `$CARGO_TARGET_TMPDIR/burrow` (cargo sets this for integration tests, so it
-//! lives under `target/`), else the system temp dir. CI can point
-//! `$BURROW_CACHE` at a directory it restores across runs.
+//! Cache location (resolved at runtime): `$CARGO_TARGET_TMPDIR/burrow` if
+//! available, else `burrow` under the system temporary directory.
 
 use std::fs::{self, File};
 use std::io;
@@ -26,15 +24,8 @@ use std::path::{Path, PathBuf};
 
 use fs2::FileExt;
 
-/// Cache directory, resolved at runtime:
-///   1. `$BURROW_CACHE` if set (CI can point this at a restored directory);
-///   2. else `$CARGO_TARGET_TMPDIR/burrow` — cargo sets this for integration
-///      tests, so the cache lives under `target/` and `cargo clean` removes it;
-///   3. else the system temp dir (non-cargo / unit-test fallback).
+/// Use Cargo's temporary directory when available, else the system temp dir.
 fn cache_dir() -> PathBuf {
-    if let Some(p) = std::env::var_os("BURROW_CACHE") {
-        return PathBuf::from(p);
-    }
     if let Some(t) = std::env::var_os("CARGO_TARGET_TMPDIR") {
         return Path::new(&t).join("burrow");
     }
